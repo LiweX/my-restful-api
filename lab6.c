@@ -6,8 +6,6 @@
 
 #define PORT 8080
 
-int valor=0;
-
 int callback_post_users (const struct _u_request * request, struct _u_response * response, void * user_data) {
     (void)user_data;
     regex_t reegex;
