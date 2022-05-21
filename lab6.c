@@ -23,7 +23,9 @@ int callback_post_users (const struct _u_request * request, struct _u_response *
     //creación de regex para solo aceptar minuculas
     value = regcomp(&reegex,"[^a-z]",0);
     if(value != 0) printf("RegEx error.");
-
+    
+    //TODO: COMPROBAR QUE EL USUARIO NO EXISTA!!
+    
     //comprobación de usuario
     value = regexec(&reegex,user,0,NULL,0);
     if(value == 0){
@@ -64,6 +66,7 @@ int callback_post_users (const struct _u_request * request, struct _u_response *
 
     //parseo del response obtenido por el request anterior
     json_t * json_aux_request = ulfius_get_json_body_response(aux_response,NULL);
+    //TODO: EN CASO QUE EL SERVICIO FALLE HAY QUE LOGGEAR LA FALLA!!
     json_t * json_aux_object = json_object_get(json_aux_request,"description");
     long id = json_integer_value(json_aux_object);
 
@@ -89,6 +92,8 @@ int callback_post_users (const struct _u_request * request, struct _u_response *
     if(value!=0) printf("json username error");
     value = json_array_append_new(data,data_object);
     if(value!=0) printf("json array error");
+
+    //TODO: system(crear usuario);
 
     //rotate_log_check();
 

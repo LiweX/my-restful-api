@@ -11,7 +11,6 @@ int valor=0;
 int callback_increment (const struct _u_request * request, struct _u_response * response, void * user_data) {
     struct sockaddr_in *address = (struct sockaddr_in *)(request->client_address);
     char *ip = inet_ntoa(address->sin_addr);
-    request=request;
     (void)user_data;
     valor++;
     json_t * body = json_object();
