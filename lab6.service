@@ -1,0 +1,9 @@
+[Unit]
+Description=Servicio de usuarios de lab6.
+
+[Service]
+Type=simple
+ExecStart=/bin/lab6
+
+[Install]
+WantedBy=multi-user.target

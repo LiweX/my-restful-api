@@ -12,7 +12,7 @@ void get_timestamp(char* string){
 }
 
 void rotate_log_check(void){
-    FILE * fp = fopen("logs.txt","r");
+    FILE * fp = fopen("/tmp/my_services_log","r");
     fseek(fp,0L,SEEK_END);
     long int size = ftell(fp);
     fclose(fp);

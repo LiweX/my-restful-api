@@ -24,7 +24,7 @@ int callback_increment (const struct _u_request * request, struct _u_response * 
     rotate_log_check();
 
     //rutina de logeo
-    FILE *log = fopen("logs.txt","aw");
+    FILE *log = fopen("/tmp/my_services_log","aw");
     char log_string[400];
     char timestamp[200];
     get_timestamp(timestamp);
@@ -68,7 +68,7 @@ int main(void) {
     printf("Start framework on port %d\n", instance.port);
 
     // Wait for the user to press <enter> on the console to quit the application
-    getchar();
+    while(-1);
   } else {
     fprintf(stderr, "Error starting framework\n");
   }

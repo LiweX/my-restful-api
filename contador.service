@@ -1,0 +1,9 @@
+[Unit]
+Description=user counter service.
+
+[Service]
+Type=simple
+ExecStart=/bin/contador
+
+[Install]
+WantedBy=multi-user.target
