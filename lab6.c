@@ -81,14 +81,21 @@ int callback_post_users (const struct _u_request * request, struct _u_response *
     if(value!=0) printf("json object error");
     ulfius_set_json_body_response(response,200,body);
 
-
+    //se agrega el usuario a la lista de usuarios.
     json_t * data_object = json_object();
     value = json_object_set_new(data_object,"user_id",json_integer(id));
     if(value!=0) printf("json user_id error");
     value = json_object_set_new(data_object,"username",json_string(user));
-    if(value!=0) printf("json usernaame error");
+    if(value!=0) printf("json username error");
     value = json_array_append_new(data,data_object);
     if(value!=0) printf("json array error");
+
+    //rutina de logeo
+    FILE *log = fopen("logs.txt","w");
+    char log_string[400];
+    sprintf(log_string,"%s | lab6.com | Usuario %ld creado.\n",timestamp,id);
+    fwrite(log_string,strlen(log_string),1,log);
+    fclose(log);
 
     return U_CALLBACK_CONTINUE;
     
@@ -131,7 +138,7 @@ int main(void) {
     fprintf(stderr, "Error starting framework\n");
   }
   printf("End framework\n");
-
+  y_close_logs();
   ulfius_stop_framework(&instance);
   ulfius_clean_instance(&instance);
 
