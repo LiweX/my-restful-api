@@ -2,26 +2,29 @@
 #include <ulfius.h>
 #include <string.h>
 #include <regex.h>
+#include "tools.h"
 
 #define PORT 8082
 
 json_t * data;
 
-
 int callback_post_users (const struct _u_request * request, struct _u_response * response, void * user_data) {
     (void)user_data;
     regex_t reegex;
     int value;
+
     //parseo de request
     json_t * json_request = ulfius_get_json_body_request(request,NULL);
     json_t * username = json_object_get(json_request,"username");
     json_t * password = json_object_get(json_request,"password");
     const char * user = json_string_value(username);
     const char * pass = json_string_value(password);
-    //creacion de regex para solo aceptar minuculas
+
+    //creación de regex para solo aceptar minuculas
     value = regcomp(&reegex,"[^a-z]",0);
     if(value != 0) printf("RegEx error.");
-    //comprobacion de usuario
+
+    //comprobación de usuario
     value = regexec(&reegex,user,0,NULL,0);
     if(value == 0){
         json_t * string = json_string("user no tiene solo minusculas.");
@@ -30,8 +33,9 @@ int callback_post_users (const struct _u_request * request, struct _u_response *
         if(value != 0) printf("json set object error.");
         ulfius_set_json_body_response(response,200,body);
         return U_CALLBACK_CONTINUE;
-    } 
-    //comprobacion de password
+    }
+
+    //comprobación de password
     value = regexec(&reegex,pass,0,NULL,0);
     if(value == 0){
         json_t * string = json_string("pass no tiene solo minusculas.");
@@ -41,6 +45,7 @@ int callback_post_users (const struct _u_request * request, struct _u_response *
         ulfius_set_json_body_response(response,200,body);
         return U_CALLBACK_CONTINUE;
     }
+
     //creacion de request para hacer get al contador de usuarios
     struct _u_request * aux_request = malloc(sizeof(struct _u_request));
     value = ulfius_init_request(aux_request);
@@ -56,32 +61,32 @@ int callback_post_users (const struct _u_request * request, struct _u_response *
     if(value!=0) printf("json error");
     value = ulfius_send_http_request(aux_request,aux_response);
     if(value!=0) printf("json error");
+
     //parseo del response obtenido por el request anterior
     json_t * json_aux_request = ulfius_get_json_body_response(aux_response,NULL);
     json_t * json_aux_object = json_object_get(json_aux_request,"description");
     long id = json_integer_value(json_aux_object);
+
     //preparar el json que sera el response
     json_t * body = json_object();
-    time_t rawtime;
-    struct tm * timeinfo;
-    time(&rawtime);
-    timeinfo = localtime(&rawtime);
-    char logtime[100];
-    strftime(logtime,100,"%y-%m-%d %H:%M:%S",timeinfo);
+
+    char timestamp[100];
+    get_timestamp(timestamp);
+
     value = json_object_set(body,"id",json_integer(id));
-    if(value!=0) printf("json object error");
+    if(value!=0) printf("json id error");
     value = json_object_set(body,"username",json_string(user));
-    if(value!=0) printf("json object error");
-    value = json_object_set(body,"created_at",json_string(logtime));
+    if(value!=0) printf("json username error");
+    value = json_object_set(body,"created_at",json_string(timestamp));
     if(value!=0) printf("json object error");
     ulfius_set_json_body_response(response,200,body);
 
 
     json_t * data_object = json_object();
     value = json_object_set_new(data_object,"user_id",json_integer(id));
-    if(value!=0) printf("json object error");
+    if(value!=0) printf("json user_id error");
     value = json_object_set_new(data_object,"username",json_string(user));
-    if(value!=0) printf("json object error");
+    if(value!=0) printf("json usernaame error");
     value = json_array_append_new(data,data_object);
     if(value!=0) printf("json array error");
 

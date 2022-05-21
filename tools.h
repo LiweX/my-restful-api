@@ -1,0 +1,1 @@
+void get_timestamp(char* string);

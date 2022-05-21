@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <ulfius.h>
 #include <string.h>
-#include <jansson.h>
 
 #define PORT 8081
 
@@ -18,6 +17,7 @@ int callback_increment (const struct _u_request * request, struct _u_response * 
     int value2 = json_object_set(body,"description",value);
     if(value1 !=0 || value2 !=0) printf("json set object error.");
     ulfius_set_json_body_response(response,200,body);
+    
     return U_CALLBACK_CONTINUE;
 }
 
