@@ -90,14 +90,10 @@ int callback_post_users (const struct _u_request * request, struct _u_response *
     value = json_array_append_new(data,data_object);
     if(value!=0) printf("json array error");
 
-    rotate_log_check();
+    //rotate_log_check();
 
     //rutina de logeo
-    FILE *log = fopen("/tmp/my_services_log","aw");
-    char log_string[400];
-    sprintf(log_string,"%s | lab6.com | Usuario %ld creado.\n",timestamp,id);
-    fwrite(log_string,strlen(log_string),1,log);
-    fclose(log);
+    y_log_message(Y_LOG_LEVEL_INFO,"Usuario %ld creado.",id);
 
     return U_CALLBACK_CONTINUE;
     
@@ -136,13 +132,7 @@ int callback_get_users (const struct _u_request * request, struct _u_response * 
     rotate_log_check();
 
     //rutina de logeo
-    FILE *log = fopen("/tmp/my_services_log","aw");
-    char log_string[400];
-    char timestamp[200];
-    get_timestamp(timestamp);
-    sprintf(log_string,"%s | lab6.com | Usuarios creados: %ld.\n",timestamp,n_users);
-    fwrite(log_string,strlen(log_string),1,log);
-    fclose(log);
+    y_log_message(Y_LOG_LEVEL_INFO,"Usuarios creados: %ld.",n_users);
     return U_CALLBACK_CONTINUE;
 }
 
@@ -163,6 +153,7 @@ int main(void) {
   ulfius_add_endpoint_by_val(&instance, "GET", "/api/users", NULL, 0, &callback_get_users, NULL);
   data = json_array();
   // Start the framework
+  y_init_logs("laboratorio6.com",Y_LOG_MODE_FILE,Y_LOG_LEVEL_INFO,"/tmp/lab6_logs.log","initializing info logs");
   if (ulfius_start_framework(&instance) == U_OK) {
     printf("Start framework on port %d\n", instance.port);
 

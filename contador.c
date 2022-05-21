@@ -11,6 +11,7 @@ int valor=0;
 int callback_increment (const struct _u_request * request, struct _u_response * response, void * user_data) {
     struct sockaddr_in *address = (struct sockaddr_in *)(request->client_address);
     char *ip = inet_ntoa(address->sin_addr);
+    request=request;
     (void)user_data;
     valor++;
     json_t * body = json_object();
@@ -21,16 +22,11 @@ int callback_increment (const struct _u_request * request, struct _u_response * 
     if(value1 !=0 || value2 !=0) printf("json set object error.");
     ulfius_set_json_body_response(response,200,body);
 
-    rotate_log_check();
+    //rotate_log_check();
 
-    //rutina de logeo
-    FILE *log = fopen("/tmp/my_services_log","aw");
-    char log_string[400];
-    char timestamp[200];
-    get_timestamp(timestamp);
-    sprintf(log_string,"%s | contadordeusuarios.com | contador incrementado desde: %s.\n",timestamp,ip);
-    fwrite(log_string,strlen(log_string),1,log);
-    fclose(log);
+    y_log_message(Y_LOG_LEVEL_INFO,"Contador incrementado desde: %s",ip);
+
+
     return U_CALLBACK_CONTINUE;
 }
 
@@ -58,6 +54,8 @@ int main(void) {
     fprintf(stderr, "Error ulfius_init_instance, abort\n");
     return(1);
   }
+
+  y_init_logs("contadordeusuarios.com",Y_LOG_MODE_FILE,Y_LOG_LEVEL_INFO,"/tmp/lab6_logs.log","initializing info logs");  
 
   // Endpoint list declaration
   ulfius_add_endpoint_by_val(&instance, "POST", "contador/increment", NULL, 0, &callback_increment, NULL);
