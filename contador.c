@@ -1,13 +1,16 @@
 #include <stdio.h>
 #include <ulfius.h>
 #include <string.h>
+#include <arpa/inet.h>
+#include "tools.h"
 
 #define PORT 8081
 
 int valor=0;
 
 int callback_increment (const struct _u_request * request, struct _u_response * response, void * user_data) {
-    request=request;
+    struct sockaddr_in *address = (struct sockaddr_in *)(request->client_address);
+    char *ip = inet_ntoa(address->sin_addr);
     (void)user_data;
     valor++;
     json_t * body = json_object();
@@ -17,7 +20,17 @@ int callback_increment (const struct _u_request * request, struct _u_response * 
     int value2 = json_object_set(body,"description",value);
     if(value1 !=0 || value2 !=0) printf("json set object error.");
     ulfius_set_json_body_response(response,200,body);
-    
+
+    rotate_log_check();
+
+    //rutina de logeo
+    FILE *log = fopen("logs.txt","aw");
+    char log_string[400];
+    char timestamp[200];
+    get_timestamp(timestamp);
+    sprintf(log_string,"%s | contadordeusuarios.com | contador incrementado desde: %s.\n",timestamp,ip);
+    fwrite(log_string,strlen(log_string),1,log);
+    fclose(log);
     return U_CALLBACK_CONTINUE;
 }
 

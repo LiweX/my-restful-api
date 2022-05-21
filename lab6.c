@@ -46,7 +46,7 @@ int callback_post_users (const struct _u_request * request, struct _u_response *
         return U_CALLBACK_CONTINUE;
     }
 
-    //creacion de request para hacer get al contador de usuarios
+    //creacion de request para hacer POST al contador de usuarios
     struct _u_request * aux_request = malloc(sizeof(struct _u_request));
     value = ulfius_init_request(aux_request);
     if(value!=0) printf("json error");
@@ -90,8 +90,10 @@ int callback_post_users (const struct _u_request * request, struct _u_response *
     value = json_array_append_new(data,data_object);
     if(value!=0) printf("json array error");
 
+    rotate_log_check();
+
     //rutina de logeo
-    FILE *log = fopen("logs.txt","w");
+    FILE *log = fopen("logs.txt","aw");
     char log_string[400];
     sprintf(log_string,"%s | lab6.com | Usuario %ld creado.\n",timestamp,id);
     fwrite(log_string,strlen(log_string),1,log);
@@ -109,6 +111,38 @@ int callback_get_users (const struct _u_request * request, struct _u_response * 
     value=json_object_set_new(json_response,"data",data);
     if(value!=0) printf("json data error");
     ulfius_set_json_body_response(response,200,json_response);
+
+    //creacion de request para hacer GET al contador de usuarios
+    struct _u_request * aux_request = malloc(sizeof(struct _u_request));
+    value = ulfius_init_request(aux_request);
+    if(value!=0) printf("json error");
+    aux_request->http_verb=strdup("GET");
+    aux_request->http_url=strdup("http://localhost:8081/contador/value");
+    aux_request->timeout = 20;
+
+    struct _u_response * aux_response= malloc(sizeof(struct _u_response));
+    
+    value = ulfius_init_response(aux_response);
+    
+    if(value!=0) printf("json error");
+    value = ulfius_send_http_request(aux_request,aux_response);
+    if(value!=0) printf("json error");
+
+    //parseo del response obtenido por el request anterior
+    json_t * json_aux_request = ulfius_get_json_body_response(aux_response,NULL);
+    json_t * json_aux_object = json_object_get(json_aux_request,"description");
+    long n_users = json_integer_value(json_aux_object);
+
+    rotate_log_check();
+
+    //rutina de logeo
+    FILE *log = fopen("logs.txt","aw");
+    char log_string[400];
+    char timestamp[200];
+    get_timestamp(timestamp);
+    sprintf(log_string,"%s | lab6.com | Usuarios creados: %ld.\n",timestamp,n_users);
+    fwrite(log_string,strlen(log_string),1,log);
+    fclose(log);
     return U_CALLBACK_CONTINUE;
 }
 
@@ -138,7 +172,6 @@ int main(void) {
     fprintf(stderr, "Error starting framework\n");
   }
   printf("End framework\n");
-  y_close_logs();
   ulfius_stop_framework(&instance);
   ulfius_clean_instance(&instance);
 
