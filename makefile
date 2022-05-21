@@ -40,3 +40,6 @@ uninstall:
 	sudo rm /etc/nginx/conf.d/reverse-proxy.conf
 	sudo service nginx configtest
 	sudo service nginx restart
+
+clean:
+	rm contador lab6 *.o
