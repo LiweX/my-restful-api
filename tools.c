@@ -16,5 +16,12 @@ void rotate_log_check(void){
     fseek(fp,0L,SEEK_END);
     long int size = ftell(fp);
     fclose(fp);
-    if(size>1000000) system("./rotate_log.sh");
+    if(size>1000000) system("/tmp/rotate_log.sh");
+}
+
+int usuario_duplicado(char* name,int n_names,char** names){
+    for(int i=0;i<n_names;i++){
+        if(strcmp(name,names[i])==0) return 1;
+    }
+    return 0;
 }

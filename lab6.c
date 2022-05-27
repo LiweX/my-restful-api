@@ -7,6 +7,8 @@
 #define PORT 8082
 
 json_t * data;
+char ** names;
+int users=0;
 
 int callback_post_users (const struct _u_request * request, struct _u_response * response, void * user_data) {
     (void)user_data;
@@ -24,12 +26,19 @@ int callback_post_users (const struct _u_request * request, struct _u_response *
     value = regcomp(&reegex,"[^a-z]",0);
     if(value != 0) printf("RegEx error.");
     
-    //TODO: COMPROBAR QUE EL USUARIO NO EXISTA!!
-    
     //comprobación de usuario
     value = regexec(&reegex,user,0,NULL,0);
     if(value == 0){
         json_t * string = json_string("user no tiene solo minusculas.");
+        json_t * body = json_object();
+        value = json_object_set(body,"mensaje",string);
+        if(value != 0) printf("json set object error.");
+        ulfius_set_json_body_response(response,200,body);
+        return U_CALLBACK_CONTINUE;
+    }
+
+    if(usuario_duplicado(strdup(user),users,names)){
+        json_t * string = json_string("el usuario ya existe.");
         json_t * body = json_object();
         value = json_object_set(body,"mensaje",string);
         if(value != 0) printf("json set object error.");
@@ -53,7 +62,7 @@ int callback_post_users (const struct _u_request * request, struct _u_response *
     value = ulfius_init_request(aux_request);
     if(value!=0) printf("json error");
     aux_request->http_verb=strdup("POST");
-    aux_request->http_url=strdup("http://localhost:8081/contador/increment");
+    aux_request->http_url=strdup("http://contadordeusuarios.com/contador/increment");
     aux_request->timeout = 20;
 
     struct _u_response * aux_response= malloc(sizeof(struct _u_response));
@@ -62,11 +71,18 @@ int callback_post_users (const struct _u_request * request, struct _u_response *
     
     if(value!=0) printf("json error");
     value = ulfius_send_http_request(aux_request,aux_response);
-    if(value!=0) printf("json error");
+    if(value!=U_OK){
+        json_t * string = json_string("fallo del servicio de contador.");
+        json_t * body = json_object();
+        value = json_object_set(body,"mensaje",string);
+        if(value != 0) printf("json set object error.");
+        ulfius_set_json_body_response(response,200,body);
+        y_log_message(Y_LOG_LEVEL_INFO,"falla del serivcio de contador");
+        return U_CALLBACK_CONTINUE;
+    }
 
     //parseo del response obtenido por el request anterior
     json_t * json_aux_request = ulfius_get_json_body_response(aux_response,NULL);
-    //TODO: EN CASO QUE EL SERVICIO FALLE HAY QUE LOGGEAR LA FALLA!!
     json_t * json_aux_object = json_object_get(json_aux_request,"description");
     long id = json_integer_value(json_aux_object);
 
@@ -93,7 +109,20 @@ int callback_post_users (const struct _u_request * request, struct _u_response *
     value = json_array_append_new(data,data_object);
     if(value!=0) printf("json array error");
 
-    //TODO: system(crear usuario);
+    //creacion de usuario con pass encriptada
+    char cmd[200];
+    sprintf(cmd,"useradd -p $(mkpasswd --hash=SHA-512 %s) %s",pass,user);
+    system(cmd);
+    
+    if(users>0){
+      int*check = realloc(names,sizeof(char*)*(size_t)users+1);
+      if(check == NULL){
+        printf("Realloc fail\n");
+        exit(EXIT_FAILURE);
+      } 
+    }
+    names[users]=strdup(user);
+    users++;
 
     //rotate_log_check();
 
@@ -134,7 +163,7 @@ int callback_get_users (const struct _u_request * request, struct _u_response * 
     json_t * json_aux_object = json_object_get(json_aux_request,"description");
     long n_users = json_integer_value(json_aux_object);
 
-    rotate_log_check();
+    //rotate_log_check();
 
     //rutina de logeo
     y_log_message(Y_LOG_LEVEL_INFO,"Usuarios creados: %ld.",n_users);
@@ -152,6 +181,8 @@ int main(void) {
     fprintf(stderr, "Error ulfius_init_instance, abort\n");
     return(1);
   }
+
+  names=(char**)malloc(sizeof(char*));
 
   // Endpoint list declaration
   ulfius_add_endpoint_by_val(&instance, "POST", "/api/users", NULL, 0, &callback_post_users, NULL);

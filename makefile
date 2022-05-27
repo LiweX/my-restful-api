@@ -12,6 +12,7 @@ tools.o: tools.c tools.h
 	gcc $(CFLAGS) -c tools.c 
 
 install:
+	sudo logrotate ./log_rotate.conf
 	sudo cp lab6 /bin/lab6
 	sudo chmod +x /bin/lab6
 	sudo cp contador /bin/contador
